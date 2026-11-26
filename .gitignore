@@ -1,0 +1,14 @@
+firmware/secrets.h
+.env
+.env.*
+!.env.example
+supabase/.temp/
+.wrangler/
+node_modules/
+
+.dev.vars*
+!.dev.vars.example
+firmware/secrets.py
+docs/relatorio/.tmp/
+__pycache__/
+*.pyc

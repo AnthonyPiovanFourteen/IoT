@@ -1,0 +1,18 @@
+# Análise do intervalo de coleta (dados reais gravados no banco)
+Intervalo configurado no firmware: 5 s
+
+Firmware v1 (uma conexão HTTPS nova a cada envio):
+  n=60  mediana 12.5 s  mín 6.9  máx 27.9
+  Medição no ESP32: leitura+tratamento ~0,34 s | envio HTTPS ~6,5 s (handshake TLS)
+  => ciclo = 5 s de pausa + ~7 s de trabalho = ~12 s (o log acusava 'ciclo atrasado')
+
+Firmware v2 (conexão HTTPS reaproveitada / keep-alive + espera até o próximo instante):
+  n=35  mediana 5.02 s  mín 4.8  máx 7.1
+  Medição no ESP32: leitura+tratamento ~0,40 s | envio ~0,4-0,8 s
+
+Intervalo 5 s (atual)  ->   17280 leituras/dia/dispositivo (~693.8 MB/ano a ~110 B/linha)
+Intervalo 1 s          ->   86400 leituras/dia/dispositivo (~3469.0 MB/ano a ~110 B/linha)
+Intervalo 30 s         ->    2880 leituras/dia/dispositivo (~115.6 MB/ano a ~110 B/linha)
+Intervalo 5 min        ->     288 leituras/dia/dispositivo (~11.6 MB/ano a ~110 B/linha)
+
+Total no banco: 186 leituras

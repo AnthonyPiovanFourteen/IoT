@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e8912d">
+<title>Alimentador Inteligente</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🐾</div>
+      <div>
+        <h1>Alimentador Inteligente</h1>
+        <small>Monitoramento IoT · ESP32 + célula de carga HX711</small>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="conn" class="pill" role="status" aria-live="polite"><span class="dot"></span><span id="connTxt">Conectando…</span></span>
+      <button id="theme" class="iconbtn" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">🌓</button>
+    </div>
+  </header>
+
+  <section class="card hero" aria-label="Nível de ração no pote">
+    <div id="sceneBox" class="scene-box ok">
+      <svg id="scene" viewBox="0 0 480 372" role="img" aria-labelledby="sceneTitle">
+        <title id="sceneTitle">Pote de ração com o nível atual</title>
+        <defs>
+          <linearGradient id="gBowl" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color:var(--bowl-1)"/><stop offset="1" style="stop-color:var(--bowl-2)"/>
+          </linearGradient>
+          <linearGradient id="gHopper" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" style="stop-color:var(--hopper-1)"/><stop offset="1" style="stop-color:var(--hopper-2)"/>
+          </linearGradient>
+          <pattern id="pKibble" width="28" height="24" patternUnits="userSpaceOnUse">
+            <rect width="28" height="24" style="fill:var(--kibble-base)"/>
+            <circle cx="6" cy="6" r="5.2" style="fill:var(--kibble-1)"/>
+            <circle cx="20" cy="5" r="4.6" style="fill:var(--kibble-2)"/>
+            <circle cx="13" cy="17" r="5.2" style="fill:var(--kibble-3)"/>
+            <circle cx="25" cy="18" r="4" style="fill:var(--kibble-1)"/>
+            <circle cx="2" cy="19" r="3.6" style="fill:var(--kibble-2)"/>
+          </pattern>
+          <clipPath id="cCavity"><path d="M56 214 H344 Q336 292 306 320 Q282 340 200 340 Q118 340 94 320 Q64 292 56 214 Z"/></clipPath>
+        </defs>
+
+        <!-- sombra no chão -->
+        <ellipse cx="200" cy="358" rx="150" ry="8" fill="rgba(0,0,0,.14)"/>
+
+        <!-- funil dosador -->
+        <path d="M130 12 H270 L238 96 H162 Z" fill="url(#gHopper)" style="stroke:var(--hopper-2)" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M142 22 H258" style="stroke:rgba(255,255,255,.55)" stroke-width="4" stroke-linecap="round"/>
+        <text x="200" y="64" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--kibble-2)" opacity=".8">RAÇÃO</text>
+        <rect x="176" y="96" width="48" height="18" rx="3" style="fill:var(--hopper-2)"/>
+        <g id="gate"><rect x="174" y="112" width="52" height="7" rx="3.5" fill="#6b5a4a"/></g>
+        <g>
+          <rect x="236" y="100" width="40" height="22" rx="6" fill="#4a4a55"/>
+          <text x="256" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">servo</text>
+        </g>
+
+        <!-- ração caindo -->
+        <g id="pellets" style="--fall:150px"></g>
+
+        <!-- pote (corte transversal) -->
+        <path d="M44 214 H356 Q348 300 316 330 Q290 352 200 352 Q110 352 84 330 Q52 300 44 214 Z" fill="url(#gBowl)" style="stroke:var(--bowl-rim)" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M56 214 H344 Q336 292 306 320 Q282 340 200 340 Q118 340 94 320 Q64 292 56 214 Z" style="fill:var(--bowl-in)"/>
+        <g clip-path="url(#cCavity)">
+          <g id="kibble" style="transform:translateY(340px)">
+            <path d="M30 0 Q50 -11 70 0 T110 0 T150 0 T190 0 T230 0 T270 0 T310 0 T350 0 T390 0 V160 H30 Z" fill="url(#pKibble)"/>
+            <path d="M30 0 Q50 -11 70 0 T110 0 T150 0 T190 0 T230 0 T270 0 T310 0 T350 0 T390 0" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+          </g>
+          <line id="limitLine" x1="40" x2="360" y1="315" y2="315" stroke="#ff6b6b" stroke-width="2.5" stroke-dasharray="7 6"/>
+        </g>
+        <path d="M60 226 Q68 290 98 316" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="6" stroke-linecap="round"/>
+        <rect x="38" y="208" width="324" height="11" rx="5.5" style="fill:var(--bowl-rim)"/>
+        <text id="limitTag" x="34" y="319" text-anchor="end" font-size="11" font-weight="800" fill="#de3b40">limite</text>
+
+        <!-- pet -->
+        <g class="pet">
+          <text id="petFace" x="378" y="338" font-size="74" text-anchor="start">🐶</text>
+        </g>
+        <text class="zzz" x="420" y="262" font-size="26">💤</text>
+      </svg>
+      <div id="bubble" class="bubble" aria-live="polite">Olá! Esperando as leituras…</div>
+    </div>
+
+    <div class="readout">
+      <div class="label" id="grandezaLbl">Ração no pote</div>
+      <div id="big" class="big"><span id="valor">--</span><small id="unidade">g</small></div>
+      <div>
+        <div id="meter" class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Nível do pote">
+          <span id="meterFill"></span><i id="meterLimit"></i>
+        </div>
+        <div class="meter-legend"><span>vazio</span><span id="legLimit">limite 200 g</span><span id="legCap">cheio</span></div>
+      </div>
+      <div class="chips">
+        <span id="chipState" class="chip on">● Nível OK</span>
+        <span id="chipGate" class="chip">⚙️ Comporta fechada</span>
+      </div>
+      <div id="hint" class="chip warn" hidden>Comporta aberta: despejando ração (simulada no firmware).</div>
+      <div class="meta">
+        Última atualização: <strong id="hora">--</strong><br>
+        Dispositivo: <strong id="dev">--</strong> · linha tracejada = limite de alerta
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Estatísticas">
+    <div class="tile"><div class="k">Nível</div><div class="v"><span id="stPct">--</span><small>%</small></div></div>
+    <div class="tile"><div class="k">Média (histórico)</div><div class="v"><span id="stAvg">--</span><small>g</small></div></div>
+    <div class="tile"><div class="k">Mínimo</div><div class="v"><span id="stMin">--</span><small>g</small></div></div>
+    <div class="tile"><div class="k">Máximo</div><div class="v"><span id="stMax">--</span><small>g</small></div></div>
+    <div class="tile"><div class="k">Leituras no histórico</div><div class="v"><span id="stN">--</span></div></div>
+    <div class="tile"><div class="k">Leituras em alerta</div><div class="v"><span id="stAl">--</span></div></div>
+    <div class="tile"><div class="k">Limite de alerta</div><div class="v"><span id="stLim">--</span><small>g</small></div></div>
+    <div class="tile"><div class="k">Última leitura há</div><div class="v age"><span id="stAge">--</span></div></div>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <h2>Histórico do peso</h2>
+      <div class="chart"><canvas id="chart" aria-label="Gráfico do histórico de peso" role="img"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Linha do tempo</h2>
+      <ul id="events" class="events"><li class="empty">Aguardando eventos…</li></ul>
+    </div>
+  </section>
+
+  <footer>Dados enviados pelo ESP32 (Wokwi) via HTTPS → API REST (Supabase) · atualização automática a cada 3 s</footer>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

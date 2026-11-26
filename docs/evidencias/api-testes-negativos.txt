@@ -1,0 +1,12 @@
+# Testes negativos e de contrato da API  (2026-11-25T21:05:36-03:00)
+
+POST /ingest SEM chave -> {"error":"não autorizado"} [HTTP 401]
+POST /ingest chave ERRADA -> {"error":"não autorizado"} [HTTP 401]
+GET  rota inexistente -> {"error":"rota não encontrada"} [HTTP 404]
+GET  /latest dispositivo inexistente -> null [HTTP 200]
+GET  /history dispositivo inexistente -> [] [HTTP 200]
+OPTIONS /latest (CORS) -> HTTP/2 200 
+access-control-allow-origin: *
+access-control-allow-headers: content-type, x-api-key
+access-control-allow-methods: GET, POST, OPTIONS
+ [HTTP 200]
